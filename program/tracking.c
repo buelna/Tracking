@@ -106,7 +106,7 @@ int main(int argc, char** argv)
     IplImage* curr_frame =0;
     curr_frame=cvQueryFrame( capture );
     if( !curr_frame )
-    return 1;
+        return 1;
     frame_szx=curr_frame->height;//frame size (heigh)
     frame_szy=curr_frame->width;//frame size (width)
     IplImage* cf_gray=0;
@@ -124,11 +124,12 @@ int main(int argc, char** argv)
     cvNamedWindow( "B", 0 );
     cvSetImageROI(cf_gray, cvRect(ycenter-half_cols-1,xcenter-half_lines,frag_cols,frag_lines));
     curr_selection = cvCreateImage(cvGetSize(cf_gray),cf_gray->depth,cf_gray->nChannels);
-    //cvCopy(cf_gray,curr_selection, NULL);
+    cvReleaseImage(&curr_selection);
     curr_selection=cvCloneImage(cf_gray);
     cvResetImageROI(cf_gray);
     IplImage* img32=cvCreateImage(cvGetSize(curr_selection),IPL_DEPTH_32F,1);
     cvScale(curr_selection,img32,1/255.,0);
+    cvReleaseImage(&curr_selection);
     curr_selection=cvCloneImage(img32);
     /*
         Creating utils for covariance function and gaussian windows aplication
@@ -198,7 +199,9 @@ int main(int argc, char** argv)
     CvMat* cSelection=cvCreateMat(img32->height,img32->width,CV_32FC1);
     IplImage *crop=0;
     IplImage *prev_frame= 0;
+    cvReleaseMat(&M);
     M=cvCloneMat(cvGetMat(img32,tempMat,0,0));
+    cvReleaseImage(&crop);
     crop=cvCloneImage(cvGetImage(M,&stub));
     mat2grayM(M,frag_lines,frag_cols);
     matrix_multiplication(gauss_win,M,cSelection,frag_lines,frag_cols);
@@ -219,7 +222,9 @@ if( capture )
     for(;;)
     {
         //store las object template
+        cvReleaseImage(&prev_frame);
         prev_frame=cvCloneImage(cf_gray);//-> lastim
+        cvReleaseMat(&prev_selection);
         prev_selection=cvCloneMat(cSelection);//->Imf_Old
         mat2grayM(prev_selection,frag_lines,frag_cols);//fix function within functions as well
         curr_frame = cvQueryFrame( capture );//read next frame
@@ -259,21 +264,27 @@ if( capture )
                     Crop the fragment from the current scene and the template of the object from the prev frame
                     considering the image boundaries
                 */
+
                 if (frame_counter>start_frame)
                 {
 normal_crop(xcenter,ycenter,frame_szx,frame_szy,half_lines,half_cols,cf_gray,prev_frame,frag_lines,frag_cols,
 frag_lines,frag_cols,Pfx1,Pfy1,curr_selection,crop,&xadp,&yadp,&out_of_bounds);
                 }
+
+                cvReleaseMat(&M);
                 M=cvCloneMat(cvGetMat(curr_selection,cvCreateMat(img32->height,img32->width,CV_32FC1),0,0));
                 mat2grayM(M,frag_lines,frag_cols);
-                matrix_multiplication(gauss_win,M,cSelection,frag_lines,frag_cols);//317   
-                sig=in_noise_est(cSelection,frag_lines,frag_cols);//Check function
+                matrix_multiplication(gauss_win,M,cSelection,frag_lines,frag_cols);//317 
+                sig=in_noise_est(cSelection,frag_lines,frag_cols);
+                cvShowImage("B",cSelection);
                 est_rho(&cSelection->data.fl,frag_lines,frag_cols,&rho_x);
+                //sig=0.011543;
                 rho_x=rho_x-(35*sig);
-                rho_x= 0.3>rho_x?0.3:rho_x;
+                //rho_x= 0.3>rho_x?0.3:rho_x;
                 rho_x=weighing_filters*rho_x+(1-weighing_filters)*rho_old;
                 rho_old=rho_x;
                 rho_y=rho_x;
+                rho_x=0.2;
                 vari=var(&cSelection->data.fl,frag_lines,frag_cols);
                 for (int i = 0; i < frag_lines; ++i)
                 {
@@ -302,9 +313,14 @@ frag_lines,frag_cols,Pfx1,Pfy1,curr_selection,crop,&xadp,&yadp,&out_of_bounds);
                 ifftshift(&H,frag_lines,frag_cols);
                 dcmatrix_multiplication(gauss_win,H,fftmp,frag_lines,frag_cols);
                 ifft2Msp(fftmp,M,M1,frag_lines,frag_cols);
+
+
                 /*
                     Rotate images in both directions up to 12 degrees
                 */
+                cvReleaseMat(&imgsTrue[0]);
+                cvReleaseMat(&imgsTrue1[0]);
+                cvReleaseMat(&q[0]);
                 Ipltmp1=cvCloneImage(cvGetImage(M,&stub1));
                 Ipltmp3=cvCloneImage(cvGetImage(M1,&stub3));
                 Ipltmp2=cvCloneImage(cvGetImage(cSelection,&stub2));
@@ -313,13 +329,22 @@ frag_lines,frag_cols,Pfx1,Pfy1,curr_selection,crop,&xadp,&yadp,&out_of_bounds);
                 q[0]=cvCloneMat(cSelection);
                 for (int i = 0; i < 4; ++i)
                 {
-                    imgsTrue[i+1]=cvCloneMat(cvGetMat(rotateImage(Ipltmp1,-3*(i+1)),cvCreateMat(img32->height,img32->width,CV_32FC1),0,0));
-                    imgsTrue[i+5]=cvCloneMat(cvGetMat(rotateImage(Ipltmp1,3*(i+1)),cvCreateMat(img32->height,img32->width,CV_32FC1),0,0));
-                    imgsTrue1[i+1]=cvCloneMat(cvGetMat(rotateImage(Ipltmp3,-3*(i+1)),cvCreateMat(img32->height,img32->width,CV_32FC1),0,0));
-                    imgsTrue1[i+5]=cvCloneMat(cvGetMat(rotateImage(Ipltmp3,3*(i+1)),cvCreateMat(img32->height,img32->width,CV_32FC1),0,0));
-                    q[i+1]=cvCloneMat(cvGetMat(rotateImage(Ipltmp2,-3*(i+1)),cvCreateMat(img32->height,img32->width,CV_32FC1),0,0));
-                    q[i+5]=cvCloneMat(cvGetMat(rotateImage(Ipltmp2,3*(i+1)),cvCreateMat(img32->height,img32->width,CV_32FC1),0,0));
+                	cvReleaseMat(&imgsTrue[i+1]);
+                	cvReleaseMat(&imgsTrue[i+5]);
+                	cvReleaseMat(&imgsTrue1[i+1]);
+                	cvReleaseMat(&imgsTrue1[i+5]);
+                	cvReleaseMat(&q[i+1]);
+                	cvReleaseMat(&q[i+5]);
+                    imgsTrue[i+1]=cvCloneMat(cvGetMat(rotateImage(Ipltmp1,3*(i+1)),cvCreateMat(img32->height,img32->width,CV_32FC1),0,0));
+                    imgsTrue[i+5]=cvCloneMat(cvGetMat(rotateImage(Ipltmp1,-3*(i+1)),cvCreateMat(img32->height,img32->width,CV_32FC1),0,0));
+                    imgsTrue1[i+1]=cvCloneMat(cvGetMat(rotateImage(Ipltmp3,3*(i+1)),cvCreateMat(img32->height,img32->width,CV_32FC1),0,0));
+                    imgsTrue1[i+5]=cvCloneMat(cvGetMat(rotateImage(Ipltmp3,-3*(i+1)),cvCreateMat(img32->height,img32->width,CV_32FC1),0,0));
+                    q[i+1]=cvCloneMat(cvGetMat(rotateImage(Ipltmp2,3*(i+1)),cvCreateMat(img32->height,img32->width,CV_32FC1),0,0));
+                    q[i+5]=cvCloneMat(cvGetMat(rotateImage(Ipltmp2,-3*(i+1)),cvCreateMat(img32->height,img32->width,CV_32FC1),0,0));
                 }
+                cvReleaseImage(&Ipltmp1);
+                cvReleaseImage(&Ipltmp2);
+                cvReleaseImage(&Ipltmp3);
                 /*
                     pass each image to its column form and generate the templates
                 */
@@ -331,11 +356,13 @@ frag_lines,frag_cols,Pfx1,Pfy1,curr_selection,crop,&xadp,&yadp,&out_of_bounds);
                     srfft2(q[i],fftmp,frag_lines,frag_cols);
                     creshape(frag_lines,frag_cols,fftmp,Q,i);
                 }
+
                 t1matXmat(Q,T,sdTmpMat,lenc,9,lenc,9);
                 Cinverse(sdTmpMat,sdTmpMati,9);
                 matXmat(T,sdTmpMati,Q,lenc,9,9,9);
                 matXvec(Q,c,sdfilter,lenc,9,9,1);
                 creshapeB(frag_lines,frag_cols, sdfilter,fftmp);
+
                 if (frame_counter>start_frame)
                 {
                     for (int i = 0; i < frag_lines; ++i)
@@ -351,14 +378,16 @@ frag_lines,frag_cols,Pfx1,Pfy1,curr_selection,crop,&xadp,&yadp,&out_of_bounds);
                     pre-processing of scene crop and filter
                 */
                 //386
+                cvReleaseMat(&scene);
                 scene=cvCloneMat(cvGetMat(crop,cvCreateMat(img32->height,img32->width,CV_32FC1),0,0));
-                cvShowImage("B",scene);
+                //cvShowImage("B",scene);
                 matrix_multiplication(gauss_win,scene,scene,frag_lines,frag_cols);
                 med=avg(&scene->data.fl,frag_lines,frag_cols);
                 subsMat(frag_lines,frag_cols,scene,scene,med);
                 //cvShowImage("B",scene);
                 ifft2(fftmp,filter,frag_lines,frag_cols);
                 subsMatrix(frag_lines,frag_cols,filter,filter,cMatMean(frag_lines,frag_cols,filter));
+                
                 srfft2(scene,F,frag_lines,frag_cols);
                 //findMaxMat(scene,frag_lines,frag_cols);
                 fftshift(&F,frag_lines,frag_cols);
@@ -380,17 +409,18 @@ frag_lines,frag_cols,Pfx1,Pfy1,curr_selection,crop,&xadp,&yadp,&out_of_bounds);
                 cmatrix_multiplication(fftmp,conjH,multmp,frag_lines,frag_cols);
                 ifft2(multmp,den2,frag_lines,frag_cols);
                 ifftshift(&den2,frag_lines,frag_cols);
+            
                 for (int i = 0; i < frag_lines; ++i)
                 {
                     for (int j = 0; j < frag_cols; ++j)
                     {
-                        stmp=creal(num[i][j]/(0.1+den1[i][j]*den2[i][j]));
+                        stmp=cabs(creal(num[i][j]/(0.1+den1[i][j]*den2[i][j])));
                         s[i][j]=stmp*stmp;
                     }
                 }
-                DC=calcDCfast(s,frag_lines,frag_cols);//BUG en calcDCfast
-                printf("%f\n",DC );
+                DC=calcDCfast(s,frag_lines,frag_cols);
                 maxs=max(s,frag_lines,frag_cols);
+                printf("%f\n",DC );
                 for (int i = 0; i < frag_lines; ++i)
                 {
                     for (int j = 0; j < frag_cols; ++j)
@@ -399,12 +429,13 @@ frag_lines,frag_cols,Pfx1,Pfy1,curr_selection,crop,&xadp,&yadp,&out_of_bounds);
                     }
                 }
                 mat2gray(&s,frag_lines,frag_cols);
+                
                 ////410
                 meanImf_Old=avg(&prev_selection->data.fl,frag_lines,frag_cols);
                 subsMat(frag_lines,frag_cols,prev_selection,prev_selection,meanImf_Old);
                 Zden=0;
                 Zden2=0;
-                //cvCopy(cSelection,M, NULL);
+                cvReleaseMat(&M);
                 M=cvCloneMat(cSelection);
                 mat2grayM(M,frag_lines,frag_cols);
                 meanImf_Old=avg(&M->data.fl,frag_lines,frag_cols);
@@ -432,28 +463,29 @@ frag_lines,frag_cols,Pfx1,Pfy1,curr_selection,crop,&xadp,&yadp,&out_of_bounds);
                 {
                     pearson+=Z1[i]*Z2[i];
                 }
-                if (DC>0.6)
+                if (DC>0.4)
                 {
                     findMax(s,frag_lines,frag_cols,&xcenter,&ycenter);
-                    xcenter=Pfx1-1+xadp+(xcenter-half_lines);
-                    ycenter=Pfy1-1+yadp+(ycenter-half_cols);
+                    xcenter=Pfx1-1+yadp+(xcenter-half_lines);//yadp
+                    ycenter=Pfy1-1+xadp+(ycenter-half_cols);//xadp
                     tmpf=1;
                 }
+                
                 //433
                 if (pearson>=0.4)
                 {
                     if (out_of_bounds==1)
                     {
-                        if (DC>0.6)
+                        if (DC>0.4)
                         {
-                            //cvRectangle(cf_gray,cvPoint(xcenter-(half_cols/2)-1,ycenter-(half_lines/2)),cvPoint(xcenter+(half_cols/2)-1,ycenter+(half_lines/2)),cvScalar(255,40,40,0),5,8,0);
                             cvRectangle(curr_frame,cvPoint(ycenter-(half_cols/2)-1,xcenter-(half_lines/2)-1),cvPoint(ycenter+(half_cols/2)-1,xcenter+(half_lines/2-1)),cvScalar(255,40,40,0),3,8,0);
+                            //cvRectangle(curr_frame,cvPoint(ycenter-(half_cols)-1,xcenter-(half_lines)-1),cvPoint(ycenter+(half_cols)-1,xcenter+(half_lines-1)),cvScalar(255,40,40,0),3,8,0);
                             cvShowImage("Motion", curr_frame );
                         }
                         else
                         {
-                            //cvRectangle(cf_gray,cvPoint(xcenter-(half_cols/2)-1,ycenter-(half_lines/2)),cvPoint(xcenter+(half_cols/2)-1,ycenter+(half_lines/2)),cvScalar(255,40,40,0),5,8,0);
                             cvRectangle(curr_frame,cvPoint(ycenter-(half_cols/2)-1,xcenter-(half_lines/2)-1),cvPoint(ycenter+(half_cols/2)-1,xcenter+(half_lines/2)-1),cvScalar(40,255,40,0),3,8,0);
+                            //cvRectangle(curr_frame,cvPoint(ycenter-(half_cols)-1,xcenter-(half_lines)-1),cvPoint(ycenter+(half_cols)-1,xcenter+(half_lines)-1),cvScalar(40,255,40,0),3,8,0);
                             cvShowImage("Motion", curr_frame );
                             //found=0;
                             tmpf=1;
@@ -461,7 +493,7 @@ frag_lines,frag_cols,Pfx1,Pfy1,curr_selection,crop,&xadp,&yadp,&out_of_bounds);
                     }
                     else
                     {
-                        printf("%d %d\n",xadp,yadp );
+                        printf("%f xadp:%d\tyadp:%d\n",DC,xadp,yadp );
                     }
                 }
             }
@@ -475,7 +507,3 @@ frag_lines,frag_cols,Pfx1,Pfy1,curr_selection,crop,&xadp,&yadp,&out_of_bounds);
     return 0;
 }
 }
-/*#ifdef _EiC
-main(1,"motempl.c");
-#endif
-*/
