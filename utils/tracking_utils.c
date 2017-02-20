@@ -432,7 +432,7 @@ double in_noise_est(CvMat* f,int lines,int cols)
 	{
 		for (int j = 0; j < cols; ++j)
 		{
-			F[i][j]=cabs(F[i][j]);
+			F[i][j]=creal(cabs(F[i][j]));
 			/*if (creal(F[i][j])<0)
 			{
 				F[i][j]=-1*creal(F[i][j]);
@@ -447,7 +447,7 @@ double in_noise_est(CvMat* f,int lines,int cols)
 			F[i][j]=F[i][j]/maxv;
 		}
 	}
-	Rs0=2*creal(F[0][1])-creal(F[0][2]);
+	Rs0=2*F[0][1]-F[0][2];
 	sig=F[0][0]-Rs0;
 	sig=cabs(sig);
 	/*if (sig<0)
@@ -531,10 +531,11 @@ int est_rho(float **img,int lines,int cols,double *rho)
 		stdY[i]=(y[i]-my)/stdy;
 		p=p+(stdX[i]*stdY[i]);
 	}
-	if (p<0)
+	/*if (p<0)
 	{
 		p=-1*p;
-	}
+	}*/
+	p=cabs(p);
 	*rho=p/(n-1);
 	return 1;
 }
@@ -580,7 +581,7 @@ void localcrop(double x1,double y1,int sz1,int sz2,double fimfx2,double fimfy2,d
 					c=abs((y1+fimfy2-1)-(y1-fimfy2))+1;
 					create_matrix(scenec,c,l);
 					rcrop_selection(Im,scenec,xres-fimfx2,xres+fimfx2-1,y1-fimfy2,y1+fimfy2-1);
-					*cxadp= -x1+2 + (floor(fimfx2)) + sz1 - 2*fimfx2;
+					*cxadp= x1+2 + (floor(fimfx2)) + sz1 - 2*fimfx2;
 					*cyadp=0;
 				}
 				else
@@ -606,7 +607,7 @@ void localcrop(double x1,double y1,int sz1,int sz2,double fimfx2,double fimfy2,d
 							c=abs((yres+fimfy2-1)-(yres-fimfy2))+1;
 							create_matrix(scenec,c,l);
 							rcrop_selection(Im,scenec,x1-fimfx2,x1+fimfx2-1,yres-fimfy2,yres+fimfy2-1);
-							*cyadp= -y1+2 + (floor(fimfy2)) + sz2 - 2*fimfy2;
+							*cyadp= y1+2 + (floor(fimfy2)) + sz2 - 2*fimfy2;
 							*cxadp=0;
 						}
 						else
@@ -634,7 +635,7 @@ void localcrop(double x1,double y1,int sz1,int sz2,double fimfx2,double fimfy2,d
 									c=abs((yres+fimfy2-1)-(yres-fimfy2))+1;
 									create_matrix(scenec,c,l);
 									rcrop_selection(Im,scenec,0,xres+fimfx2,yres-fimfy2,yres+fimfy2-1);
-									*cyadp= -y1+2 + (floor(fimfy2)) + sz2 - 2*fimfy2;
+									*cyadp= y1+2 + (floor(fimfy2)) + sz2 - 2*fimfy2;
 									*cxadp=floor(fimfx2)-x1+2;
 								}
 								else
@@ -649,7 +650,7 @@ void localcrop(double x1,double y1,int sz1,int sz2,double fimfx2,double fimfy2,d
 										create_matrix(scenec,c,l);
 										rcrop_selection(Im,scenec,xres-fimfx2,xres+fimfx2-1,0,yres+fimfy2);
 										*cyadp=floor(fimfy2)-y1+2;
-										*cxadp=-x1+2 + (floor(fimfx2)) + sz1 - 2*fimfx2;
+										*cxadp=x1+2 + (floor(fimfx2)) + sz1 - 2*fimfx2;
 									}
 									else
 									{
@@ -661,8 +662,8 @@ void localcrop(double x1,double y1,int sz1,int sz2,double fimfx2,double fimfy2,d
 										c=abs((yres+fimfy2-1)-(yres-fimfy2))+1;
 										create_matrix(scenec,c,l);
 										rcrop_selection(Im,scenec,xres-fimfx2,xres+fimfx2-1,yres-fimfy2,yres+fimfy2-1);
-										*cyadp=-y1+2 + (floor(fimfy2)) + sz2 - 2*fimfy2;
-										*cxadp=-x1+2 + (floor(fimfx2)) + sz1 - 2*fimfx2;
+										*cyadp=y1+2 + (floor(fimfy2)) + sz2 - 2*fimfy2;
+										*cxadp=x1+2 + (floor(fimfx2)) + sz1 - 2*fimfx2;
 									}
 								}
 							}
@@ -1018,6 +1019,15 @@ int fsz1,int fsz2,int Pfx1,int Pfy1,IplImage* Imfr,IplImage* crop_scene,int* xad
 	tempo=Pfx1;
 	Pfx1=Pfy1;
 	Pfy1=tempo;
+
+	tempo=imfx2;
+	imfx2=imfy2;
+	imfy2=tempo;
+
+	tempo=Isz1;
+	Isz1=Isz2;
+	Isz2=tempo;
+
 	CvMat* tempMat;
 	IplImage* tmp;
 	if ((Pfx1-imfx2)>=0 && (Pfx1+imfx2-1) < Isz1 && (Pfy1-imfy2)>=0 && (Pfy1+imfy2-1) < Isz2)
@@ -1027,11 +1037,9 @@ int fsz1,int fsz2,int Pfx1,int Pfy1,IplImage* Imfr,IplImage* crop_scene,int* xad
 		*yadp=0;
 		cvSetImageROI(frame, cvRect(Pfx1-imfx2,Pfy1-imfy2,co2,re2));
 		img2=cvCreateImage(cvGetSize(frame),frame->depth,frame->nChannels);
-		//crop_scene = cvCreateImage(cvGetSize(frame),frame->depth,frame->nChannels);
 		cvCopy(frame,img2, NULL);
 		cvResetImageROI(frame);
 		cvScale(img2,crop_scene,1/255.,0);
-		//rcrop_selection(frame,&crop_scene,Pfx1-imfx2,Pfx1+imfx2-1,Pfy1-imfy2,Pfy1+imfy2-1);
 	}
 
 	//case when it overflows on the upper side (Pfx1-imfx2)<0
@@ -1043,11 +1051,9 @@ int fsz1,int fsz2,int Pfx1,int Pfy1,IplImage* Imfr,IplImage* crop_scene,int* xad
 		*yadp=0;
 		cvSetImageROI(frame, cvRect(xres-imfx2,Pfy1-imfy2,co2,re2));
 		img2=cvCreateImage(cvGetSize(frame),frame->depth,frame->nChannels);
-		//crop_scene = cvCreateImage(cvGetSize(frame),frame->depth,frame->nChannels);
 		cvCopy(frame,img2, NULL);
 		cvResetImageROI(frame);
 		cvScale(img2,crop_scene,1/255.,0);
-		//rcrop_selection(frame,&crop_scene,xres-imfx2,xres+imfx2-1,Pfy1-imfy2,Pfy1+imfy2-1);
 	}
 
 	//case when it overflows on the lower side (Pfx1+imfx2-1)>480
@@ -1059,11 +1065,9 @@ int fsz1,int fsz2,int Pfx1,int Pfy1,IplImage* Imfr,IplImage* crop_scene,int* xad
 		*yadp=0;
 		cvSetImageROI(frame, cvRect(xres-imfx2,Pfy1-imfy2,co2,re2));
 		img2=cvCreateImage(cvGetSize(frame),frame->depth,frame->nChannels);
-		//crop_scene = cvCreateImage(cvGetSize(frame),frame->depth,frame->nChannels);
 		cvCopy(frame,img2, NULL);
 		cvResetImageROI(frame);
 		cvScale(img2,crop_scene,1/255.,0);
-//		rcrop_selection(frame,&crop_scene,xres-imfx2,xres+imfx2-1,Pfy1-imfy2,Pfy1+imfy2-1);
 	}
 
 	//case when it overflows on the left side(Pfy1-imfy2)<0
@@ -1075,11 +1079,9 @@ int fsz1,int fsz2,int Pfx1,int Pfy1,IplImage* Imfr,IplImage* crop_scene,int* xad
 		*yadp=floor(imfy2)-Pfy1+1;
 		cvSetImageROI(frame, cvRect(Pfx1-imfx2,yres-imfy2,co2,re2));
 		img2=cvCreateImage(cvGetSize(frame),frame->depth,frame->nChannels);
-		//crop_scene = cvCreateImage(cvGetSize(frame),frame->depth,frame->nChannels);
 		cvCopy(frame,img2, NULL);
 		cvResetImageROI(frame);
 		cvScale(img2,crop_scene,1/255.,0);
-//		rcrop_selection(frame,&crop_scene,Pfx1-imfx2,Pfx1+imfx2-1,yres-imfy2,yres+imfy2-1);
 	}
 
 	//Overfow on the right side (Pfy1+imfy2-1)> (640+sv*2)
@@ -1091,11 +1093,9 @@ int fsz1,int fsz2,int Pfx1,int Pfy1,IplImage* Imfr,IplImage* crop_scene,int* xad
 		*xadp=0;
 		cvSetImageROI(frame, cvRect(Pfx1-imfx2,yres-imfy2,co2,re2));
 		img2=cvCreateImage(cvGetSize(frame),frame->depth,frame->nChannels);
-		//crop_scene = cvCreateImage(cvGetSize(frame),frame->depth,frame->nChannels);
 		cvCopy(frame,img2, NULL);
 		cvResetImageROI(frame);
 		cvScale(img2,crop_scene,1/255.,0);
-//		rcrop_selection(frame,&crop_scene,Pfx1-imfx2,Pfx1+imfx2-1,yres-imfy2,yres+imfy2-1);
 	}
 
 	//upper left corner
@@ -1108,11 +1108,9 @@ int fsz1,int fsz2,int Pfx1,int Pfy1,IplImage* Imfr,IplImage* crop_scene,int* xad
 		*yadp=floor(imfy2)-Pfy1+1;
 		cvSetImageROI(frame, cvRect(0,0,co2,re2));
 		img2=cvCreateImage(cvGetSize(frame),frame->depth,frame->nChannels);
-		//crop_scene = cvCreateImage(cvGetSize(frame),frame->depth,frame->nChannels);
 		cvCopy(frame,img2, NULL);
 		cvResetImageROI(frame);
 		cvScale(img2,crop_scene,1/255.,0);
-//		rcrop_selection(frame,&crop_scene,0,xres+imfx2-1,0,yres+imfy2-1);
 	}
 
 	//Upper right corner
@@ -1125,11 +1123,9 @@ int fsz1,int fsz2,int Pfx1,int Pfy1,IplImage* Imfr,IplImage* crop_scene,int* xad
 		*yadp=(Pfy1-yres)*(-1);
 		cvSetImageROI(frame, cvRect(0,yres-imfy2,co2,re2));
 		img2=cvCreateImage(cvGetSize(frame),frame->depth,frame->nChannels);
-		//crop_scene = cvCreateImage(cvGetSize(frame),frame->depth,frame->nChannels);
 		cvCopy(frame,img2, NULL);
 		cvResetImageROI(frame);
 		cvScale(img2,crop_scene,1/255.,0);
-//		rcrop_selection(frame,&crop_scene,0,xres+imfx2,yres-imfy2,yres+imfy2-1);
 	}
 
 	//Lower left corner
@@ -1142,11 +1138,9 @@ int fsz1,int fsz2,int Pfx1,int Pfy1,IplImage* Imfr,IplImage* crop_scene,int* xad
 		*yadp=floor(imfy2)-Pfy1+1;
 		cvSetImageROI(frame, cvRect(xres-imfx2,0,co2,re2));
 		img2=cvCreateImage(cvGetSize(frame),frame->depth,frame->nChannels);
-		//crop_scene = cvCreateImage(cvGetSize(frame),frame->depth,frame->nChannels);
 		cvCopy(frame,img2, NULL);
 		cvResetImageROI(frame);
 		cvScale(img2,crop_scene,1/255.,0);
-//		rcrop_selection(frame,&crop_scene,xres-imfx2,xres+imfx2-1,0,yres+imfy2-1);
 	}
 
 	//Lower right corner
@@ -1177,20 +1171,21 @@ int fsz1,int fsz2,int Pfx1,int Pfy1,IplImage* Imfr,IplImage* crop_scene,int* xad
 		cvCopy(prevf,img, NULL);
 		cvResetImageROI(prevf);
 		cvScale(img,Imfr,1/255.,0);
-//		rcrop_selection(prevf,&Imfr,x1-imfx2,x1+imfx2-1,y1-imfy2,y1+imfy2-1);
+		cvReleaseImage(&img);
 	}
 	
 	//Overflow on the upper side (x1-imfx2)<0
 	if ((x1-imfx2)<=0 && (x1+imfx2-1) < Isz1 && (y1-imfy2)>0 && (y1+imfy2-1) < Isz2)
 	{
 		IplImage* img;
-		img=cvCreateImage(cvGetSize(Imfr),prevf->depth,prevf->nChannels);
+		cresx=ceil(x1-imfx2)*(-1)+1;
+		cvSetImageROI(prevf, cvRect(x1-imfx2+re2+cresx,y1-imfy2,Imfr->width,Imfr->height));
+		img=cvCreateImage(cvGetSize(prevf),prevf->depth,prevf->nChannels);
 		sz1=abs((x1-imfx2+re2)-(x1+imfx2+re2-1));
 		sz2=abs((y1-imfy2)-(y1+imfy2-1));
-		cresx=ceil(x1-imfx2)*(-1)+1;
-		cvSetImageROI(prevf, cvRect(x1-imfx2+re2+cresx,y1-imfy2,co2,re2-cresx));
 		cvSetImageROI(Imfr, cvRect(cresx,0,co2,re2-cresx));
 		cvCopy(prevf,img, NULL);
+		cvSetImageROI(img, cvRect(cresx,0,co2,re2-cresx));
 		cvScale(img,Imfr,1/255.,0);
 		cvResetImageROI(prevf);
 		cvResetImageROI(Imfr);
@@ -1204,24 +1199,24 @@ int fsz1,int fsz2,int Pfx1,int Pfy1,IplImage* Imfr,IplImage* crop_scene,int* xad
 			}
 		}
 		*recc=0;
+		cvReleaseImage(&img);
 	}
 
 	//overflow on the lower side (x1+imfx2-1)>480
 	if ((x1-imfx2)>0 && (x1+imfx2-1)>=Isz1 && (y1-imfy2)>0 && (y1+imfy2-1) < Isz2)
 	{	
 		IplImage* img;
-		img=cvCreateImage(cvGetSize(Imfr),prevf->depth,prevf->nChannels);
+		cresx=ceil(x1+imfx2-1-Isz1);
+		cvSetImageROI(prevf, cvRect(x1-imfx2,y1-imfy2,Imfr->width,Imfr->height));
+		img=cvCreateImage(cvGetSize(prevf),prevf->depth,prevf->nChannels);
 		sz1=abs((x1-imfx2)-(x1+imfx2-1));
 		sz2=abs((y1-imfy2)-(y1+imfy2-1));
-		cresx=ceil(x1+imfx2-1-Isz1);
-		cvSetImageROI(prevf, cvRect(x1-imfx2,y1-imfy2,co2,re2-cresx));
 		cvSetImageROI(Imfr, cvRect(0,0,co2,re2-cresx));
 		cvCopy(prevf,img, NULL);
+		cvSetImageROI(img, cvRect(0,0,co2,re2-cresx));
 		cvScale(img,Imfr,1/255.,0);
 		cvResetImageROI(prevf);
 		cvResetImageROI(Imfr);
-		//rcrop_selection(prevf,&Imfr,x1-imfx2,x1+imfx2-1-cresx,y1-imfy2,y1+imfy2-1);
-
 		//mirror
 		for (int i = 0; i < cresx; ++i)
 		{
@@ -1231,18 +1226,20 @@ int fsz1,int fsz2,int Pfx1,int Pfy1,IplImage* Imfr,IplImage* crop_scene,int* xad
 			}
 		}
 		*recc=0;
+		cvReleaseImage(&img);
 	}
 	//left side(y1-imfy2)<0
 	if ((x1-imfx2)>0 && (x1+imfx2-1)<Isz1 && (y1-imfy2)<=0 && (y1+imfy2-1) < Isz2)
 	{
 		IplImage* img;
-		img=cvCreateImage(cvGetSize(Imfr),prevf->depth,prevf->nChannels);
+		cresy=ceil(y1-imfy2)*(-1)+1;
+		cvSetImageROI(prevf, cvRect(x1-imfx2,y1-imfy2+co2+cresy,Imfr->width,Imfr->height));
+		img=cvCreateImage(cvGetSize(prevf),prevf->depth,prevf->nChannels);
 		sz1=abs((x1-imfx2)-(x1+imfx2-1));
 		sz2=abs((y1-imfy2+co2)-(y1+imfy2+co2-1));
-		cresy=ceil(y1-imfy2)*(-1)+1;
-		cvSetImageROI(prevf, cvRect(x1-imfx2,y1-imfy2+co2+cresy,co2-cresy,re2));
 		cvSetImageROI(Imfr, cvRect(0,cresy,co2-cresy,re2));
 		cvCopy(prevf,img, NULL);
+		cvSetImageROI(img, cvRect(0,cresy,co2-cresy,re2));
 		cvScale(img,Imfr,1/255.,0);
 		cvResetImageROI(prevf);
 		cvResetImageROI(Imfr);
@@ -1256,18 +1253,20 @@ int fsz1,int fsz2,int Pfx1,int Pfy1,IplImage* Imfr,IplImage* crop_scene,int* xad
 			}
 		}
 		*recc=0;
+		cvReleaseImage(&img);
 	}
 	//right side (y1+imfy2-1)> (640+sv*2)
 	if ((x1-imfx2)>0 && (x1+imfx2-1)<Isz1&& (y1-imfy2)>0 && (y1+imfy2-1)>= Isz2)
 	{
 		IplImage* img;
-		img=cvCreateImage(cvGetSize(Imfr),prevf->depth,prevf->nChannels);
+		cresy=ceil(y1+imfy2-1-Isz2);
+		cvSetImageROI(prevf, cvRect(x1-imfx2,y1-imfy2,Imfr->width,Imfr->height));
+		img=cvCreateImage(cvGetSize(prevf),prevf->depth,prevf->nChannels);
 		sz1=abs((x1-imfx2)-(x1+imfx2-1));
 		sz2=abs((y1-imfy2)-(y1+imfy2-1));
-		cresy=ceil(y1+imfy2-1-Isz2);
-		cvSetImageROI(prevf, cvRect(x1-imfx2,y1-imfy2,co2-cresy,re2));
 		cvSetImageROI(Imfr, cvRect(0,0,co2-cresy,re2));
 		cvCopy(prevf,img, NULL);
+		cvSetImageROI(img, cvRect(0,0,co2-cresy,re2));
 		cvScale(img,Imfr,1/255.,0);
 		cvResetImageROI(prevf);
 		cvResetImageROI(Imfr);
@@ -1281,20 +1280,22 @@ int fsz1,int fsz2,int Pfx1,int Pfy1,IplImage* Imfr,IplImage* crop_scene,int* xad
 			}
 		}
 		*recc=0;
+		cvReleaseImage(&img);
 	}
 
 	//upper left corner
 	if ((x1-imfx2)<=0 && (x1+imfx2-1)<Isz1 && (y1-imfy2)<=0 && (y1+imfy2-1)< Isz2)
 	{
 		IplImage* img;
-		img=cvCreateImage(cvGetSize(Imfr),prevf->depth,prevf->nChannels);
 		xres=ceil(imfx2)+x1;  
 		yres=ceil(imfy2)+y1;
 		cresx=ceil(x1-imfx2)*(-1)+1;
 		cresy=ceil(y1-imfy2)*(-1)+1;
-		cvSetImageROI(prevf, cvRect(xres-imfx2+cresx,yres-imfy2+cresy,co2-cresy,re2-cresx));
+		cvSetImageROI(prevf, cvRect(xres-imfx2+cresx,yres-imfy2+cresy,Imfr->width,Imfr->height));
+		img=cvCreateImage(cvGetSize(prevf),prevf->depth,prevf->nChannels);
 		cvSetImageROI(Imfr, cvRect(cresx,cresy,co2-cresy,re2-cresx));
 		cvCopy(prevf,img, NULL);
+		cvSetImageROI(img, cvRect(cresx,cresy,co2-cresy,re2-cresx));
 		cvScale(img,Imfr,1/255.,0);
 		cvResetImageROI(prevf);
 		cvResetImageROI(Imfr);
@@ -1316,19 +1317,20 @@ int fsz1,int fsz2,int Pfx1,int Pfy1,IplImage* Imfr,IplImage* crop_scene,int* xad
 			}
 		}
 		*recc=0;
+		cvReleaseImage(&img);
 	}
 	//Upper right corner
 	if ((x1-imfx2)<=0 && (x1+imfx2-1)<Isz1 && (y1-imfy2)>0 && (y1+imfy2-1)>= Isz2)
 	{
 		IplImage* img;
-		img=cvCreateImage(cvGetSize(Imfr),prevf->depth,prevf->nChannels);
 		xres=ceil(imfx2)+x1;
-		//Imfr=lastim(xres-imfx2:xres+imfx2-1,y1-imfy2:y1+imfy2-1);
 		cresx=ceil(x1-imfx2)*(-1)+1;
 		cresy=ceil(y1+imfy2-1-Isz2);
-		cvSetImageROI(prevf, cvRect(xres-imfx2+cresx,y1-imfy2,co2-cresy,re2-cresx));
+		cvSetImageROI(prevf, cvRect(xres-imfx2+cresx,y1-imfy2,Imfr->width,Imfr->height));
+		img=cvCreateImage(cvGetSize(prevf),prevf->depth,prevf->nChannels);
 		cvSetImageROI(Imfr, cvRect(cresx,0,co2-cresy,re2-cresx));
 		cvCopy(prevf,img, NULL);
+		cvSetImageROI(img, cvRect(cresx,0,co2-cresy,re2-cresx));
 		cvScale(img,Imfr,1/255.,0);
 		cvResetImageROI(prevf);
 		cvResetImageROI(Imfr);
@@ -1350,18 +1352,20 @@ int fsz1,int fsz2,int Pfx1,int Pfy1,IplImage* Imfr,IplImage* crop_scene,int* xad
 			}
 		}
 		*recc=0;
+		cvReleaseImage(&img);
 	}
 	//Lower left corner
 	if ((x1-imfx2)>0 && (x1+imfx2-1)>=Isz1 && (y1-imfy2)<=0 && (y1+imfy2-1)< Isz2)
 	{
 		IplImage* img;
-		img=cvCreateImage(cvGetSize(Imfr),prevf->depth,prevf->nChannels);
 		yres=ceil(imfy2)+y1;
 		cresy=ceil(y1-imfy2)*(-1)+1;
 		cresx=ceil(x1+imfx2-1-Isz1);
-		cvSetImageROI(prevf, cvRect(x1-imfx2,yres-imfy2+cresy,co2-cresy,re2-cresx));
+		cvSetImageROI(prevf, cvRect(x1-imfx2,yres-imfy2+cresy,Imfr->width,Imfr->height));
+		img=cvCreateImage(cvGetSize(prevf),prevf->depth,prevf->nChannels);
 		cvSetImageROI(Imfr, cvRect(0,cresy,co2-cresy,re2-cresx));
 		cvCopy(prevf,img, NULL);
+		cvSetImageROI(img, cvRect(0,cresy,co2-cresy,re2-cresx));
 		cvScale(img,Imfr,1/255.,0);
 		cvResetImageROI(prevf);
 		cvResetImageROI(Imfr);
@@ -1383,18 +1387,19 @@ int fsz1,int fsz2,int Pfx1,int Pfy1,IplImage* Imfr,IplImage* crop_scene,int* xad
 			}
 		}
 		*recc=0;
+		cvReleaseImage(&img);
 	}
 	//Lower right corner
 	if ((x1-imfx2)>0 && (x1+imfx2-1)>=Isz1 && (y1-imfy2)>0 && (y1+imfy2-1)>= Isz2)
 	{
 		IplImage* img;
-		img=cvCreateImage(cvGetSize(Imfr),prevf->depth,prevf->nChannels);
-		//Imfr=lastim(x1-imfx2:x1+imfx2-1,y1-imfy2:y1+imfy2-1);
 		cresx=ceil(x1+imfx2-1-Isz1);
 		cresy=ceil(y1+imfy2-1-Isz2);
-		cvSetImageROI(prevf, cvRect(x1-imfx2,y1-imfy2,co2-cresy,re2-cresx));
+		cvSetImageROI(prevf, cvRect(x1-imfx2,y1-imfy2,Imfr->width,Imfr->height));		
+		img=cvCreateImage(cvGetSize(prevf),prevf->depth,prevf->nChannels);
 		cvSetImageROI(Imfr, cvRect(0,0,co2-cresy,re2-cresx));
 		cvCopy(prevf,img, NULL);
+		cvSetImageROI(img, cvRect(0,0,co2-cresy,re2-cresx));
 		cvScale(img,Imfr,1/255.,0);
 		cvResetImageROI(prevf);
 		cvResetImageROI(Imfr);
@@ -1416,6 +1421,7 @@ int fsz1,int fsz2,int Pfx1,int Pfy1,IplImage* Imfr,IplImage* crop_scene,int* xad
 			}
 		}
 		*recc=0;
+		cvReleaseImage(&img);
 	}
 }
 /*
