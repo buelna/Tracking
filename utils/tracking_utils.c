@@ -1153,11 +1153,9 @@ int fsz1,int fsz2,int Pfx1,int Pfy1,IplImage* Imfr,IplImage* crop_scene,int* xad
 		*yadp=(Pfy1-yres)*(-1);
 		cvSetImageROI(frame, cvRect(xres-imfx2,yres-imfy2,co2,re2));
 		img2=cvCreateImage(cvGetSize(frame),frame->depth,frame->nChannels);
-		//crop_scene = cvCreateImage(cvGetSize(frame),frame->depth,frame->nChannels);
 		cvCopy(frame,img2, NULL);
 		cvResetImageROI(frame);
 		cvScale(img2,crop_scene,1/255.,0);
-//		rcrop_selection(frame,&crop_scene,xres-imfx2,xres+imfx2-1,yres-imfy2,yres+imfy2-1);
 	}
 
 	//Crop Imf
@@ -1189,7 +1187,6 @@ int fsz1,int fsz2,int Pfx1,int Pfy1,IplImage* Imfr,IplImage* crop_scene,int* xad
 		cvScale(img,Imfr,1/255.,0);
 		cvResetImageROI(prevf);
 		cvResetImageROI(Imfr);
-//		rcrop_selection(prevf,&Imfr,x1-imfx2+re2+cresx,x1+imfx2+re2-1,y1-imfy2,y1+imfy2-1);
 		//Mirror the elements near to the edge into the empty elements
 		for (int i = 1; i <= cresx; ++i)
 		{
@@ -1243,7 +1240,6 @@ int fsz1,int fsz2,int Pfx1,int Pfy1,IplImage* Imfr,IplImage* crop_scene,int* xad
 		cvScale(img,Imfr,1/255.,0);
 		cvResetImageROI(prevf);
 		cvResetImageROI(Imfr);
-//		rcrop_selection(prevf,&Imfr,x1-imfx2,x1+imfx2-1,y1-imfy2+co2+cresy,y1+imfy2+co2-1);
 		//mirror
 		for (int j = 1; j <= cresy; ++j)
 		{
@@ -1255,7 +1251,6 @@ int fsz1,int fsz2,int Pfx1,int Pfy1,IplImage* Imfr,IplImage* crop_scene,int* xad
 		*recc=0;
 		cvReleaseImage(&img);
 	}
-	//right side (y1+imfy2-1)> (640+sv*2)
 	if ((x1-imfx2)>0 && (x1+imfx2-1)<Isz1&& (y1-imfy2)>0 && (y1+imfy2-1)>= Isz2)
 	{
 		IplImage* img;
@@ -1270,7 +1265,6 @@ int fsz1,int fsz2,int Pfx1,int Pfy1,IplImage* Imfr,IplImage* crop_scene,int* xad
 		cvScale(img,Imfr,1/255.,0);
 		cvResetImageROI(prevf);
 		cvResetImageROI(Imfr);
-//		rcrop_selection(prevf,&Imfr,x1-imfx2,x1+imfx2-1,y1-imfy2,y1+imfy2-1-cresy);
 		//mirror
 		for (int j = 1; j <= cresy; ++j)
 		{
@@ -1299,7 +1293,6 @@ int fsz1,int fsz2,int Pfx1,int Pfy1,IplImage* Imfr,IplImage* crop_scene,int* xad
 		cvScale(img,Imfr,1/255.,0);
 		cvResetImageROI(prevf);
 		cvResetImageROI(Imfr);
-//		rcrop_selection(prevf,&Imfr,xres-imfx2+cresx,xres+imfx2-1,yres-imfy2+cresy,yres+imfy2-1);
 		//mirror
 		for (int i = 1; i <= cresx; ++i)
 		{
@@ -1334,7 +1327,6 @@ int fsz1,int fsz2,int Pfx1,int Pfy1,IplImage* Imfr,IplImage* crop_scene,int* xad
 		cvScale(img,Imfr,1/255.,0);
 		cvResetImageROI(prevf);
 		cvResetImageROI(Imfr);
-//		rcrop_selection(prevf,&Imfr,xres-imfx2+cresx,xres+imfx2-1,y1-imfy2,y1+imfy2-1-cresy);
 		//Mirror
 		for (int i = 1; i <= cresx; ++i)
 		{
@@ -1369,7 +1361,6 @@ int fsz1,int fsz2,int Pfx1,int Pfy1,IplImage* Imfr,IplImage* crop_scene,int* xad
 		cvScale(img,Imfr,1/255.,0);
 		cvResetImageROI(prevf);
 		cvResetImageROI(Imfr);
-//		rcrop_selection(prevf,&Imfr,x1-imfx2,x1+imfx2-1-cresx,yres-imfy2+cresy,yres+imfy2-1);
 		//Mirror
 		for (int i = 0; i < cresx; ++i)
 		{
@@ -1403,7 +1394,6 @@ int fsz1,int fsz2,int Pfx1,int Pfy1,IplImage* Imfr,IplImage* crop_scene,int* xad
 		cvScale(img,Imfr,1/255.,0);
 		cvResetImageROI(prevf);
 		cvResetImageROI(Imfr);
-//		rcrop_selection(prevf,&Imfr,x1-imfx2,x1+imfx2-1,y1-imfy2,y1+imfy2-1);
 		//Mirror
 		for (int i = 0; i < cresx; ++i)
 		{

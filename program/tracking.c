@@ -274,11 +274,9 @@ frag_lines,frag_cols,Pfx1,Pfy1,curr_selection,crop,&xadp,&yadp,&out_of_bounds);
                 cvReleaseMat(&M);
                 M=cvCloneMat(cvGetMat(curr_selection,cvCreateMat(img32->height,img32->width,CV_32FC1),0,0));
                 mat2grayM(M,frag_lines,frag_cols);
-                matrix_multiplication(gauss_win,M,cSelection,frag_lines,frag_cols);//317 
+                matrix_multiplication(gauss_win,M,cSelection,frag_lines,frag_cols);
                 sig=in_noise_est(cSelection,frag_lines,frag_cols);
-                cvShowImage("B",cSelection);
                 est_rho(&cSelection->data.fl,frag_lines,frag_cols,&rho_x);
-                //sig=0.011543;
                 rho_x=rho_x-(35*sig);
                 //rho_x= 0.3>rho_x?0.3:rho_x;
                 rho_x=weighing_filters*rho_x+(1-weighing_filters)*rho_old;
@@ -295,11 +293,9 @@ frag_lines,frag_cols,Pfx1,Pfy1,curr_selection,crop,&xadp,&yadp,&out_of_bounds);
                         R[i][j]=vari*pow(rho_x,cabs(pot1))*pow(rho_y,cabs(pot2));
                     }
                 }
-                //331
                 rfft2(R,fftmp,frag_lines,frag_cols);
                 cmat_abs(fftmp,frag_lines,frag_cols);
                 fftshift(&fftmp,frag_lines,frag_cols);
-                //330
                 for (int i = 0; i < frag_lines; ++i)
                 {
                     for (int j = 0; j < frag_cols; ++j)
@@ -313,7 +309,6 @@ frag_lines,frag_cols,Pfx1,Pfy1,curr_selection,crop,&xadp,&yadp,&out_of_bounds);
                 ifftshift(&H,frag_lines,frag_cols);
                 dcmatrix_multiplication(gauss_win,H,fftmp,frag_lines,frag_cols);
                 ifft2Msp(fftmp,M,M1,frag_lines,frag_cols);
-
 
                 /*
                     Rotate images in both directions up to 12 degrees
@@ -377,23 +372,23 @@ frag_lines,frag_cols,Pfx1,Pfy1,curr_selection,crop,&xadp,&yadp,&out_of_bounds);
                 /*
                     pre-processing of scene crop and filter
                 */
-                //386
+                
                 cvReleaseMat(&scene);
                 scene=cvCloneMat(cvGetMat(crop,cvCreateMat(img32->height,img32->width,CV_32FC1),0,0));
-                //cvShowImage("B",scene);
+                
                 matrix_multiplication(gauss_win,scene,scene,frag_lines,frag_cols);
                 med=avg(&scene->data.fl,frag_lines,frag_cols);
                 subsMat(frag_lines,frag_cols,scene,scene,med);
-                //cvShowImage("B",scene);
+                
                 ifft2(fftmp,filter,frag_lines,frag_cols);
                 subsMatrix(frag_lines,frag_cols,filter,filter,cMatMean(frag_lines,frag_cols,filter));
                 
                 srfft2(scene,F,frag_lines,frag_cols);
-                //findMaxMat(scene,frag_lines,frag_cols);
+                
                 fftshift(&F,frag_lines,frag_cols);
                 fft2(filter,fftmp,frag_lines,frag_cols);//fftmp=H ///filter?
                 fftshift(&fftmp,frag_lines,frag_cols);
-                //line 396
+                
                 cconj(fftmp,conjH,frag_lines,frag_cols);
                 cconj(F,conjF,frag_lines,frag_cols);
                 cmatrix_multiplication(F,conjH,NUM,frag_lines,frag_cols);
@@ -420,7 +415,7 @@ frag_lines,frag_cols,Pfx1,Pfy1,curr_selection,crop,&xadp,&yadp,&out_of_bounds);
                 }
                 DC=calcDCfast(s,frag_lines,frag_cols);
                 maxs=max(s,frag_lines,frag_cols);
-                printf("%f\n",DC );
+               
                 for (int i = 0; i < frag_lines; ++i)
                 {
                     for (int j = 0; j < frag_cols; ++j)
@@ -428,9 +423,9 @@ frag_lines,frag_cols,Pfx1,Pfy1,curr_selection,crop,&xadp,&yadp,&out_of_bounds);
                         s[i][j]=s[i][j]/maxs;
                     }
                 }
+                cvShowImage("B",cSelection);
                 mat2gray(&s,frag_lines,frag_cols);
                 
-                ////410
                 meanImf_Old=avg(&prev_selection->data.fl,frag_lines,frag_cols);
                 subsMat(frag_lines,frag_cols,prev_selection,prev_selection,meanImf_Old);
                 Zden=0;
@@ -471,11 +466,11 @@ frag_lines,frag_cols,Pfx1,Pfy1,curr_selection,crop,&xadp,&yadp,&out_of_bounds);
                     tmpf=1;
                 }
                 
-                //433
                 if (pearson>=0.4)
                 {
                     if (out_of_bounds==1)
                     {
+                        printf("%f xadp:%d\tyadp:%d\n",DC,xadp,yadp );
                         if (DC>0.4)
                         {
                             cvRectangle(curr_frame,cvPoint(ycenter-(half_cols/2)-1,xcenter-(half_lines/2)-1),cvPoint(ycenter+(half_cols/2)-1,xcenter+(half_lines/2-1)),cvScalar(255,40,40,0),3,8,0);
