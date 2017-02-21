@@ -470,7 +470,7 @@ frag_lines,frag_cols,Pfx1,Pfy1,curr_selection,crop,&xadp,&yadp,&out_of_bounds);
                 {
                     if (out_of_bounds==1)
                     {
-                        printf("%f xadp:%d\tyadp:%d\n",DC,xadp,yadp );
+                        printf("%f\n",DC);
                         if (DC>0.4)
                         {
                             cvRectangle(curr_frame,cvPoint(ycenter-(half_cols/2)-1,xcenter-(half_lines/2)-1),cvPoint(ycenter+(half_cols/2)-1,xcenter+(half_lines/2-1)),cvScalar(255,40,40,0),3,8,0);
