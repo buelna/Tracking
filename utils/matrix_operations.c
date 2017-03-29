@@ -54,13 +54,13 @@ void creshapeB(int m, int n, double complex* cvec, double complex** mat) {
 }
 double cMatMean(int n, int m, double complex** in){
 	int i,j;
-	double mean,sum;
+	double complex mean,sum;
 	sum=0;
 	for (i=0; i<n; i++) 
 		for (j=0; j<m; j++)
-			sum+=creal(in[i][j]);
+			sum+=in[i][j];
 	mean=sum/(n*m);
-	return mean;
+	return creal(mean);
 }
 void matCpy(int n, int m, double complex** in, double complex** out,double mult) {
 	int i,j;

@@ -314,7 +314,8 @@ int ifft2Msp(double complex** input,CvMat* output,CvMat* output1,int lines,int c
 		for (int j = 0; j < cols; ++j)
 		{
 			in[k][REAL]=creal(input[i][j]);
-			in[k++][IMAG]=cimag(input[i][j]);
+			in[k][IMAG]=cimag(input[i][j]);
+			k++;
 		}
 	}
 	/*
@@ -332,12 +333,8 @@ int ifft2Msp(double complex** input,CvMat* output,CvMat* output1,int lines,int c
 		{
 			tmp=(out[k][REAL])+(out[k][IMAG])*I;
 			tmp=tmp/factor;
-			output->data.fl[(i*cols)+j]=(float)creal(tmp);
-			output1->data.fl[(i*cols)+j]=(float)cimag(tmp);
-			/*output->data.fl[(i*cols)+j]=(out[k][REAL]);
-			output->data.fl[(i*cols)+j]=output->data.fl[(i*cols)+j]/factor;
-			output1->data.fl[(i*cols)+j]=(out[k][IMAG]);
-			output1->data.fl[(i*cols)+j]=output1->data.fl[(i*cols)+j]/factor;*/
+			output->data.fl[(i*cols)+j]=creal(tmp);
+			output1->data.fl[(i*cols)+j]=cimag(tmp);
 			k++;
 		}
 	}
@@ -346,40 +343,6 @@ int ifft2Msp(double complex** input,CvMat* output,CvMat* output1,int lines,int c
 	fftw_free(out);
 	return 1;
 }
-/*int fftshift(double complex** input,int lines,int cols)
-{
-	int m, n;      // FFT row and column dimensions might be different
-	m=lines;
-	n=cols;
-	int m2, n2;
-	//int i, k;
-	//double complex x[m][n];
-	double complex tmp13;
-
-	m2 = (m / 2);    // half of row dimension
-	n2 = (n / 2);    // half of column dimension
-	// interchange entries in 4 quadrants, 1 <--> 3 and 2 <--> 4
-	for (int i = 0; i < m; ++i)
-	{
-		tmp13=input[i][n2];
-		for (int j = 0; j <n2; ++j)
-		{
-			input[i][n2-j]=input[i][n-j-1];
-			input[i][n-j-1]=input[i][n2-j-1];
-		}
-		input[i][0]=tmp13;
-	}
-	for (int i = 0; i < n; ++i)
-	{
-		tmp13=input[m2][i];
-		for (int j = 0; j <m2; ++j)
-		{
-			input[m2-j][i]=input[m-j-1][i];
-			input[m-j-1][i]=input[m2-j-1][i];
-		}
-		input[0][i]=tmp13;
-	}
-}*/
 int fftshift(double complex*** input,int lines,int cols)
 {
 	int m2, n2;

@@ -8,6 +8,7 @@ float findMaxMat(CvMat* a,int r, int c);
 double complex maxc(double complex **a,int r, int c);
 double complex minc(double complex **a,int r, int c);
 double max(double **a,int r, int c);
+float maxM(CvMat* a,int r, int c);
 double min(double **a,int r, int c);
 void set_zeros(double **cp, int xini,int xend,int yini,int yend);
 double calcDCfast(double** cp,int nx,int ny);

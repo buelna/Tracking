@@ -365,9 +365,24 @@ void mat2grayM(CvMat* matrix,int lines,int cols){
 void cmat2gray(double complex ***matrix,int lines,int cols){
 	int i,j;
 	double complex tmp,minv,maxv;
-	minv=minc(*matrix,lines,cols);
-	maxv=maxc(*matrix,lines,cols);
-
+	//minv=minc(*matrix,lines,cols);
+	//maxv=maxc(*matrix,lines,cols);
+	maxv=0;
+	minv=creal((*matrix)[0][0]);
+	for (int i = 0; i < lines; ++i)
+	{
+		for (int j = 0; j < cols; ++j)
+		{
+			if (creal((*matrix)[i][j])>creal(maxv))
+			{
+				maxv=creal((*matrix)[i][j]);
+			}
+			if (creal((*matrix)[i][j])<creal(minv))
+			{
+				minv=creal((*matrix)[i][j]);
+			}
+		}
+	}
 	for (i = 0; i <lines ; ++i)
 	{
 		for (j = 0; j < cols; ++j)
@@ -439,7 +454,18 @@ double in_noise_est(CvMat* f,int lines,int cols)
 			}*/
 		}
 	}
-	maxv=creal(maxc(F,lines,cols));
+	//maxv=creal(maxc(F,lines,cols));
+	maxv=0;
+	for (int i = 0; i < lines; ++i)
+	{
+		for (int j = 0; j < cols; ++j)
+		{
+			if (creal(F[i][j])>maxv)
+			{
+				maxv=creal(F[i][j]);
+			}
+		}
+	}
 	for (int i = 0; i < lines; ++i)
 	{
 		for (int j = 0; j < cols; ++j)
