@@ -121,7 +121,7 @@ int main(int argc, char** argv)
         Crop selection
     */
     cvNamedWindow( "Motion", 0 );
-    cvNamedWindow( "B", 0 );
+   // cvNamedWindow( "B", 0 );
     cvSetImageROI(cf_gray, cvRect(ycenter-half_cols-1,xcenter-half_lines,frag_cols,frag_lines));
     curr_selection = cvCreateImage(cvGetSize(cf_gray),cf_gray->depth,cf_gray->nChannels);
     cvReleaseImage(&curr_selection);
@@ -256,8 +256,8 @@ if( capture )
                 }
                 else
                 {
-                    ex[counter]=xcenter;
-                    ey[counter]=ycenter;
+                    ex[frame_counter]=xcenter;
+                    ey[frame_counter]=ycenter;
                     Pfx1=xcenter;
                     Pfy1=ycenter;
                     counter++;
@@ -370,7 +370,8 @@ frag_lines,frag_cols,Pfx1,Pfy1,curr_selection,crop,&xadp,&yadp,&out_of_bounds);
                 /*
                     pre-processing of scene crop and filter
                 */
- //Pre processing               
+ //Pre processing  
+            ///////////Inicio separacion             
                 cvReleaseMat(&scene);
                 scene=cvCloneMat(cvGetMat(crop,cvCreateMat(img32->height,img32->width,CV_32FC1),0,0));
                 
@@ -389,18 +390,20 @@ frag_lines,frag_cols,Pfx1,Pfy1,curr_selection,crop,&xadp,&yadp,&out_of_bounds);
                 
                 cconj(fftmp,conjH,frag_lines,frag_cols);
                 cconj(F,conjF,frag_lines,frag_cols);
-                cmatrix_multiplication(F,conjH,NUM,frag_lines,frag_cols);
-                ifft2(NUM,num,frag_lines,frag_cols);
-                ifftshift(&num,frag_lines,frag_cols);
-                /*
-                    Normalizing correlation plane
-                */
                 cmatrix_multiplication(F,conjF,multmp,frag_lines,frag_cols);
                 ifft2(multmp,den1,frag_lines,frag_cols);
                 ifftshift(&den1,frag_lines,frag_cols);
                 cmatrix_multiplication(fftmp,conjH,multmp,frag_lines,frag_cols);
                 ifft2(multmp,den2,frag_lines,frag_cols);
                 ifftshift(&den2,frag_lines,frag_cols);
+            ///////////fin separacion
+                cmatrix_multiplication(F,conjH,NUM,frag_lines,frag_cols);
+                ifft2(NUM,num,frag_lines,frag_cols);
+                ifftshift(&num,frag_lines,frag_cols);
+                /*
+                    Normalizing correlation plane
+                */
+
 //S
                 for (int i = 0; i < frag_lines; ++i)
                 {
@@ -410,12 +413,12 @@ frag_lines,frag_cols,Pfx1,Pfy1,curr_selection,crop,&xadp,&yadp,&out_of_bounds);
                         s[i][j]=stmp*stmp;
                     }
                 }
-//Show frame
+//Find Object
                 DC=calcDCfast(s,frag_lines,frag_cols);
                 printf("%f\n",DC);
                 //mat2gray(&s,frag_lines,frag_cols);
                 
-                meanImf_Old=avg(&prev_selection->data.fl,frag_lines,frag_cols);
+                /*meanImf_Old=avg(&prev_selection->data.fl,frag_lines,frag_cols);
                 subsMat(frag_lines,frag_cols,prev_selection,prev_selection,meanImf_Old);
                 Zden=0;
                 Zden2=0;
@@ -456,7 +459,7 @@ frag_lines,frag_cols,Pfx1,Pfy1,curr_selection,crop,&xadp,&yadp,&out_of_bounds);
                     ycenter=Pfy1-1+xadp+(ycenter-half_cols);//xadp
                     tmpf=1;
                 }
-                
+//Show frame
                 if (pearson>=0.4)
                 {
                     if (out_of_bounds==1)
