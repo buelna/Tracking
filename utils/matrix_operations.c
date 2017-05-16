@@ -146,7 +146,6 @@ void matXmat(double complex **a,double complex **b,double complex** c,int r1,int
 void matXvec(double complex **a,double complex *b,double complex* c,int r1,int c1,int r2,int c2)
 {
 	double complex sum;
-	//c1==r2
 	for(int i=0; i<r1; ++i)
 	{
 	    for(int j=0; j<c2; ++j)
@@ -163,7 +162,6 @@ void matXvec(double complex **a,double complex *b,double complex* c,int r1,int c
 void t1matXmat(double complex **a,double complex **b,double complex** c,int r1,int c1,int r2,int c2)
 {
 	double complex sum;
-	//c1==r2
 	for(int i=0; i<c1; ++i)
 	{
 	    for(int j=0; j<c2; ++j)
@@ -291,7 +289,6 @@ int read_matrix_from_file(char * filename, double *** matrix, int c,int r)
 					l = strlen(line);
 					strncpy(no, line, l-k);
 					n=strtod(no,&ptr);
-					//n = atoi(no);
 					(*matrix)[i][j] = n;
 					line = ans+1;
 				}
@@ -301,7 +298,6 @@ int read_matrix_from_file(char * filename, double *** matrix, int c,int r)
 			k = strlen(ans);
 			l = strlen(line);
 			strncpy(no, line, l-k);
-			//n = atoi(no);
 			n=strtod(no,&ptr);
 			(*matrix)[i][j] = n;      
 		}

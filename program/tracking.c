@@ -228,7 +228,6 @@ if( capture )
         prev_frame=cvCloneImage(cf_gray);//-> lastim
         cvReleaseMat(&prev_selection);
         prev_selection=cvCloneMat(cSelection);//->Imf_Old
-       // mat2grayM(prev_selection,frag_lines,frag_cols);//fix function within functions as well
         curr_frame = cvQueryFrame( capture );//read next frame
         if( !curr_frame )
             break;

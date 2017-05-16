@@ -13,7 +13,6 @@ void cmat_abs(double complex ** input,int lines,int cols)
 	{
 		for (int j = 0; j < cols; ++j)
 		{
-			//input[i][j]=(creal(input[i][j])>=0)?creal(input[i][j]):(-1*creal(input[i][j]));
 			input[i][j]=cabs(input[i][j]);
 		}
 	}
@@ -360,7 +359,7 @@ int fftshift(double complex*** input,int lines,int cols)
 		}
 	}
 	
-	//asssign new quadrant #3
+	//assign new quadrant #3
 	for (int i = m2; i <lines; ++i)
 	{
 		for (int j = n2; j <cols; ++j)
@@ -368,7 +367,7 @@ int fftshift(double complex*** input,int lines,int cols)
 			result[i][j]=(*input)[i-m2][j-n2];
 		}
 	}
-	//asssing new quadrant #2
+	//assign new quadrant #2
 	for (int i = 0; i <m2; ++i)
 	{
 		for (int j = n2; j <cols; ++j)
@@ -376,7 +375,7 @@ int fftshift(double complex*** input,int lines,int cols)
 			result[i][j]=(*input)[i+m2+1][j-n2];
 		}
 	}
-	//asssing new quadrant #4
+	//assign new quadrant #4
 	for (int i = m2; i <lines; ++i)
 	{
 		for (int j = 0; j <n2; ++j)
@@ -402,7 +401,7 @@ int ifftshift(double complex*** input,int lines,int cols)
 			result[i][j]=(*input)[m2+i][n2+j];
 		}
 	}
-	//asssign new quadrant #3
+	//assign new quadrant #3
 	for (int i = m2+1; i <lines; ++i)
 	{
 		for (int j = n2+1; j <cols; ++j)
@@ -410,7 +409,7 @@ int ifftshift(double complex*** input,int lines,int cols)
 			result[i][j]=(*input)[i-m2-1][j-n2-1];
 		}
 	}
-	//asssing new quadrant #2
+	//assign new quadrant #2
 	for (int i = 0; i <=m2; ++i)
 	{
 		for (int j = n2+1; j <cols; ++j)
@@ -418,7 +417,7 @@ int ifftshift(double complex*** input,int lines,int cols)
 			result[i][j]=(*input)[i+m2][j-n2-1];
 		}
 	}
-	//asssing new quadrant #4
+	//assign new quadrant #4
 	for (int i = m2+1; i <lines; ++i)
 	{
 		for (int j = 0; j <=n2; ++j)
@@ -429,39 +428,3 @@ int ifftshift(double complex*** input,int lines,int cols)
 	(*input)=result;
 	return 0;
 }
-/*
-int ifftshift(double complex** input,int lines,int cols)
-{
-	int m, n;      // FFT row and column dimensions might be different
-	m=lines;
-	n=cols;
-	int m2, n2;
-	//int i, k;
-	//double complex x[m][n];
-	double complex tmp13, tmp24;
-
-	m2 = (m / 2);    // half of row dimension
-	n2 = (n / 2);    // half of column dimension
-	// interchange entries in 4 quadrants, 1 <--> 3 and 2 <--> 4
-	for (int i = 0; i < n; ++i)
-	{
-		tmp13=input[m2][i];
-		for (int j = 0; j <m2; ++j)
-		{
-			input[m2+j][i]=input[j][i];
-			input[j][i]=input[m2+j+1][i];
-		}
-		input[m-1][i]=tmp13;
-	}
-	for (int i = 0; i < m; ++i)
-	{
-		tmp13=input[i][n2];
-		for (int j = 0; j < n2; ++j)
-		{
-			input[i][n2+j]=input[i][j];
-			input[i][j]=input[i][n2+j+1];
-		}
-		input[i][n-1]=tmp13;
-	}
-	return 0;
-}*/

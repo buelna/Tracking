@@ -94,13 +94,11 @@ IplImage* rotateImage(IplImage* src, float angle)
 	dstTri[2].x=w*0.15;
 	dstTri[2].y=h*0.7;
 	cvGetAffineTransform(srcTri,dstTri,warp_mat);
-    //cvWarpAffine(src, dst,warp_mat,CV_WARP_FILL_OUTLIERS,cvScalarAll(0));
     cvWarpAffine(src, dst,warp_mat,CV_INTER_LINEAR+CV_WARP_FILL_OUTLIERS,cvScalarAll(0));
   	imageRotated=cvCloneImage(src);
     CvPoint2D32f center=cvPoint2D32f(w/2,h/2);
     cv2DRotationMatrix(center,angle,1,rot_mat);
     cvWarpAffine(src,imageRotated,rot_mat,CV_INTER_LINEAR+CV_WARP_FILL_OUTLIERS,cvScalarAll(0));
-    //cvWarpAffine(src,imageRotated,rot_mat,CV_INTER_LINEAR,cvScalarAll(0));
     cvReleaseMat(&rot_mat);
     cvReleaseMat(&warp_mat);
     cvReleaseImage(&dst);
@@ -304,7 +302,6 @@ void gaussian_window(double **w,int sz){
 	a=2.5;
 	order=sz;
 	n2=sz/2;
-	//(*w)=(double *)malloc(sz*sizeof(double));
 	for (i = 0; i < order; ++i)
 	{
 		n=i-n2;
@@ -448,13 +445,8 @@ double in_noise_est(CvMat* f,int lines,int cols)
 		for (int j = 0; j < cols; ++j)
 		{
 			F[i][j]=creal(cabs(F[i][j]));
-			/*if (creal(F[i][j])<0)
-			{
-				F[i][j]=-1*creal(F[i][j]);
-			}*/
 		}
 	}
-	//maxv=creal(maxc(F,lines,cols));
 	maxv=0;
 	for (int i = 0; i < lines; ++i)
 	{
@@ -476,10 +468,6 @@ double in_noise_est(CvMat* f,int lines,int cols)
 	Rs0=2*F[0][1]-F[0][2];
 	sig=F[0][0]-Rs0;
 	sig=cabs(sig);
-	/*if (sig<0)
-	{
-		sig=-1*sig;
-	}*/
 	free(Fconj);
 	free(ff);
 	free(F);
@@ -557,10 +545,6 @@ int est_rho(float **img,int lines,int cols,double *rho)
 		stdY[i]=(y[i]-my)/stdy;
 		p=p+(stdX[i]*stdY[i]);
 	}
-	/*if (p<0)
-	{
-		p=-1*p;
-	}*/
 	p=cabs(p);
 	*rho=p/(n-1);
 	return 1;
